@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 4276540812
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: hand.assetbundle
+      Dependencies: {}
