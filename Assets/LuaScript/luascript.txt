@@ -1,0 +1,14 @@
+local Debug = CS.UnityEngine.Debug
+local Json = require "json.dkjson"
+
+function awake()
+
+end
+
+function open(_tab)
+
+end
+
+function close()
+
+end
