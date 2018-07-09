@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using System;
-using LitJson;
 using System.IO;
 
 public class ABDownLoad : MonoBehaviour 
 {
-	float m_downCount;
+	float m_downCount=0;
 	public void Download(string _newFileIP, string _newFilesPath,string _oldFilesPath,Action<float> _peogress)
 	{
 		StartCoroutine (download(_newFileIP,_newFilesPath,_oldFilesPath,_peogress));
@@ -17,24 +16,27 @@ public class ABDownLoad : MonoBehaviour
 	IEnumerator download(string _newFileIP, string _newFilesPath,string _oldFilesPath,Action<float> _peogress)
 	{
 		string newFilesJson;
-		using(WWW loadNewFiles = new WWW (_newFileIP+"/"+_newFilesPath))
+		string loadNewFileUrl = _newFileIP + "/" + _newFilesPath;
+		if(loadNewFileUrl.IndexOf("file:///")==-1 && loadNewFileUrl.IndexOf("http")!=0)
+		{
+			loadNewFileUrl = "file:///" + loadNewFileUrl;
+		}
+		using(WWW loadNewFiles = new WWW (loadNewFileUrl))
 		{
 			yield return loadNewFiles;
 			if(!string.IsNullOrEmpty(loadNewFiles.error))
 			{
-				HttpSerMng.Instance.HttpErr(_newFileIP+"/"+_newFilesPath,"[ABDownLoad.download]文件下载失败:"+loadNewFiles.error);
+				HttpSerMng.Instance.HttpErr(loadNewFiles.url,"[ABDownLoad.download]文件下载失败:"+loadNewFiles.error);
 			}
 			newFilesJson = loadNewFiles.text;
 			loadNewFiles.Dispose ();
 		}
 
-//		if (string.IsNullOrEmpty (newFilesJson)) 
-//		{
-//			downloadErr (_newFileIP+"/"+_newFilesPath);
-//		}
-
 		string oldFilesJson;
-
+		if(_oldFilesPath.IndexOf("file:///")==-1 && _oldFilesPath.IndexOf("http")!=0)
+		{
+			_oldFilesPath = "file:///" + _oldFilesPath;
+		}
 		using(WWW loadOldFiles = new  WWW (_oldFilesPath))
 		{
 			yield return loadOldFiles;
@@ -42,11 +44,11 @@ public class ABDownLoad : MonoBehaviour
 			loadOldFiles.Dispose ();
 		}
 
-		IDictionary kvs_new = null,kvs_old=null;
-		kvs_new = JsonMapper.ToObject (newFilesJson)["files"] as IDictionary;
+		Hashtable kvs_new = null,kvs_old=null;
+		kvs_new = (MiniJSON.jsonDecode (newFilesJson) as Hashtable) ["files"] as Hashtable;
 		if(!string.IsNullOrEmpty(oldFilesJson))
 		{
-			kvs_old = JsonMapper.ToObject (oldFilesJson)["files"] as IDictionary;
+			kvs_old = (MiniJSON.jsonDecode (oldFilesJson) as Hashtable) ["files"] as Hashtable;
 		}
 
 		foreach (string k in kvs_new.Keys) 
@@ -56,31 +58,28 @@ public class ABDownLoad : MonoBehaviour
 				string filePath = QPathHelper.GetAssetBundleOutPath () + "/" + k;
 				InitABFile (filePath);
 				string downUrl = _newFileIP+"/" + k;
+				if(downUrl.IndexOf("file:///")==-1 && downUrl.IndexOf("http")!=0)
+				{
+					downUrl = "file:///" + downUrl;
+				}
 				using(UnityWebRequest uwr = new UnityWebRequest (downUrl))
 				{
 					uwr.downloadHandler = new DownloadHandlerFile (filePath);
 					yield return uwr.SendWebRequest ();
 					if (!string.IsNullOrEmpty (uwr.error)) 
 					{
-//						downloadErr (downUrl);
-						HttpSerMng.Instance.HttpErr(downUrl,"[ABDownLoad.download]文件下载失败:"+uwr.error);
-					}
-					m_downCount++;
-					if(_peogress!=null)
-					{
-						_peogress (m_downCount/kvs_new.Keys.Count);
+						HttpSerMng.Instance.HttpErr(uwr.url,"[ABDownLoad.download]文件下载失败:"+uwr.error);
 					}
 				}
+			}
+			m_downCount++;
+			if(_peogress!=null)
+			{
+				_peogress (m_downCount/kvs_new.Keys.Count);
 			}
 		}
 		Destroy (this);
 	}
-
-//	void downloadErr(string _path)
-//	{
-//		Debug.LogError ("[ABDownLoad.download]文件下载失败:"+_path);
-//		Destroy (this);
-//	}
 
 	public static void InitABFile(string _path)
 	{

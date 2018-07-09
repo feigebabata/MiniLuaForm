@@ -20,49 +20,41 @@ public class QPathHelper
 		}
 
         return outPath;
-    }
+	}    
 
-    /// <summary>
-    /// 自动获取对应平台的路径
-    /// </summary>
-    /// <returns></returns>
-    public static string GetPlatformPath()
-    {
-        switch (Application.platform)
-        {
-            case RuntimePlatform.WindowsPlayer:
-            case RuntimePlatform.WindowsEditor:
-                return Application.streamingAssetsPath;
-			case RuntimePlatform.Android:
-			case RuntimePlatform.IPhonePlayer:
-				return Application.persistentDataPath;
-            default:
-                return null;
-        }
+	/// <summary>
+	/// 自动获取对应平台的路径
+	/// </summary>
+	/// <returns></returns>
+	public static string GetPlatformPath()
+	{
+		string str="";
+		#if UNITY_EDITOR
+		str=Application.streamingAssetsPath;
+		return str;
+		#elif UNITY_ANDROID||UNITY_IOS
+		str=Application.persistentDataPath;
+		return str;
+		#else
+		return null;
+		#endif
 
-    }
+	}
 
-    /// <summary>
-    /// 获取对应平台的名字
-    /// </summary>
-    /// <returns></returns>
-    public static string GetPlatformName()
-    {
-//        return "windows";
-
-        switch (Application.platform)
-        {
-            case RuntimePlatform.WindowsPlayer:
-            case RuntimePlatform.WindowsEditor:
-//                return "windows";
-            case RuntimePlatform.Android:
-                return "android";
-            case RuntimePlatform.OSXPlayer:
-                return "ios";
-            default:
-                return null;
-        }
-    }
+	/// <summary>
+	/// 获取对应平台的名字
+	/// </summary>
+	/// <returns></returns>
+	public static string GetPlatformName()
+	{
+		#if UNITY_IOS
+		return "ios";
+		#elif UNITY_ANDROID
+		return "android";
+		#else
+		return null;
+		#endif
+	}
 
 
     /// <summary>

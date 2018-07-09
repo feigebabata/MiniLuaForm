@@ -13,9 +13,9 @@ public static class EventTool
 	}
 	static Dictionary<string,Dictionary<string,Dictionary<string,EventData>>> allEvents = new Dictionary<string, Dictionary<string,Dictionary<string,EventData>>> ();
 
-	static public void Clear(string _modules)
+	static public void Clear(string _modules="")
 	{
-		if(_modules==string.Empty)
+		if(string.IsNullOrEmpty(_modules))
 		{
 			allEvents.Clear ();
 		}
@@ -59,12 +59,12 @@ public static class EventTool
 	{
 		if(!allEvents.ContainsKey(_modules))
 		{
-			Debug.LogWarning ("[EventMng.Run]无此事件集:"+_modules);
+//			Debug.LogWarning ("[EventMng.Run]无此事件集:"+_modules);
 			return;
 		}
 		if(!allEvents[_modules].ContainsKey(_eventName) || allEvents [_modules][_eventName].Count==0)
 		{
-			Debug.LogWarningFormat ("[EventMng.Run]无此事件:{0}.{1}",_modules,_eventName);
+			// Debug.LogWarningFormat ("[EventMng.Run]无此事件:{0}.{1}",_modules,_eventName);
 		}
 		else
 		{
@@ -87,7 +87,7 @@ public static class EventTool
 		{
 			Debug.LogWarningFormat ("[EventMng.Remove]无此事件:{0}.{1}",_modules,_eventName);
 		}
-		if(_eventID==string.Empty)
+		if(string.IsNullOrEmpty(_eventID))
 		{
 			allEvents [_modules].Remove (_eventName);
 		}

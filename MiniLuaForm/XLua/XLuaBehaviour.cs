@@ -10,38 +10,41 @@ public class XLuaBehaviour : MonoBehaviour
 	public TextAsset luaScript;
 	public Injection[] injections;
 
-
 	private Action luaStart;
 	private Action luaUpdate;
 	private Action luaOnDestroy;
+	private Action<string> LuaCustomize;
 
-	public LuaTable self;
+	public LuaTable main;
 
 	void Awake()
 	{
-		self = AppMng.luaEnv.NewTable();
+		main = AppMng.luaEnv.NewTable();
 
 		LuaTable meta = AppMng.luaEnv.NewTable();
 		meta.Set("__index", AppMng.luaEnv.Global);
-		self.SetMetaTable(meta);
+		main.SetMetaTable(meta);
 		meta.Dispose();
 
-		self.Set("this", this);
+		main.Set("this", this);
 		foreach (var injection in injections)
 		{
-			self.Set(injection.name, injection.value);
+			main.Set(injection.name, injection.value);
 		}
 
-		AppMng.luaEnv.DoString(luaScript.text, luaScript.name, self);
-		Action luaAwake = self.Get<Action>("awake");
-		self.Get("start", out luaStart);
-		self.Get("update", out luaUpdate);
-		self.Get("ondestroy", out luaOnDestroy);
-
+		AppMng.luaEnv.DoString(luaScript.text, luaScript.name, main);
+		Action luaAwake = main.Get<Action>("awake");
+		main.Get("start", out luaStart);
+		main.Get("update", out luaUpdate);
+		main.Get("ondestroy", out luaOnDestroy);
+		main.Get("customize", out LuaCustomize);
+		
 		if (luaAwake != null)
 		{
 			luaAwake();
 		}
+//		Debug.LogWarning (main);
+//		Debug.LogWarning ("Awake:"+name);
 	}
 
 	// Use this for initialization
@@ -71,7 +74,15 @@ public class XLuaBehaviour : MonoBehaviour
 		luaOnDestroy = null;
 		luaUpdate = null;
 		luaStart = null;
-		self.Dispose();
+		main.Dispose();
 		injections = null;
+	}
+
+	public void Customize(string _event)
+	{
+		if(LuaCustomize!=null)
+		{
+			LuaCustomize (_event);
+		}
 	}
 }

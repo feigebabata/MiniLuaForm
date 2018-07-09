@@ -22,13 +22,18 @@ public class TwistCrad : MonoBehaviour
 	bool isDown;
 	Vector3 startPos = Vector3.zero;
 
+	bool isshow=true;
+	bool ispublic;
+	bool iszhuang;
+
+	public Action m_End;
+	public Action<string> m_Changed;
+
 	void Awake()
 	{
 		rectSize = GetComponent<RectTransform> ().sizeDelta;
 		shadow_T.gameObject.SetActive (false);
 		facade_T.gameObject.SetActive (false);
-		Debug.LogWarning (Screen.width+" , "+Screen.height);
-		Debug.LogWarning (rectSize);
 	}
 
 	void changeDirection(Direction _direction)
@@ -92,6 +97,14 @@ public class TwistCrad : MonoBehaviour
 
 	public void Drag(BaseEventData _data)
 	{
+		if(ispublic && !iszhuang)
+		{
+			return;
+		}
+		if (!isshow) 
+		{
+			return;
+		}
 		PointerEventData ped = _data as PointerEventData;
 		float space = 0;
 		switch (curDirection) 
@@ -157,32 +170,60 @@ public class TwistCrad : MonoBehaviour
 			}
 			break;
 		}
+		if(curDirection != Direction.None && m_Changed!=null)
+		{
+			Hashtable jd = new Hashtable();
+			jd ["dir"] = (int)curDirection;
+			jd ["val"] = space;
+			m_Changed (MiniJSON.jsonEncode(jd));
+		}
 		if(curDirection!= Direction.None && space>0.5f)
 		{
-			changeDirection (Direction.None);
+			isshow = false;
+			showpoker ();
 			return;
+		}
+	}
+
+	void showpoker()
+	{
+		facade_T.localPosition = Vector3.zero;
+		bgMask_T.gameObject.SetActive (false);
+		shadow_T.gameObject.SetActive (false);
+		if (m_End != null) 
+		{
+			m_End ();
 		}
 	}
 
 	public void BeginDrag(BaseEventData _data)
 	{
+		if(ispublic && !iszhuang)
+		{
+			return;
+		}
+		if (!isshow) 
+		{
+			return;
+		}
 		PointerEventData ped = _data as PointerEventData;
 		startPos = ped.pressPosition;
 		Vector2 pos = ped.pressPosition - new Vector2 (Screen.width/2,Screen.height/2);
+		pos *= 1920f / Screen.width;
 
-		if(pos.x>rectSize.y*0.4f)
+		if(pos.x>rectSize.y*0.25f)
 		{
 			changeDirection (Direction.Left);
 		}
-		else if(pos.x<-rectSize.y*0.4f)
+		else if(pos.x<-rectSize.y*0.25f)
 		{
 			changeDirection (Direction.Right);
 		}
-		else if(pos.y>rectSize.x*0.4f)
+		else if(pos.y>rectSize.x*0.25f)
 		{
-			changeDirection (Direction.Down);
+			curDirection = Direction.None;
 		}
-		else if(pos.y<-rectSize.x*0.4f)
+		else if(pos.y<-rectSize.x*0.25f)
 		{
 			changeDirection (Direction.Up);
 		}
@@ -191,11 +232,58 @@ public class TwistCrad : MonoBehaviour
 			curDirection = Direction.None;
 		}
 
-		Debug.LogWarning (curDirection);
 	}
 
 	public void EndDrag(BaseEventData _data)
 	{
+		if(ispublic && !iszhuang)
+		{
+			return;
+		}
+		if (!isshow) 
+		{
+			return;
+		}
 		changeDirection (Direction.None);
+	}
+
+	public void SetPoker(Sprite _pk,object _public,object _zhuang)
+	{
+		facade_T.GetComponent<Image> ().sprite = _pk;
+		isshow = true;
+		ispublic = _public != null;
+		iszhuang = _zhuang != null;
+		changeDirection (Direction.None);
+		bgMask_T.gameObject.SetActive (true);
+		shadow_T.gameObject.SetActive (true);
+	}
+
+	public void SetChanged(string _json)
+	{
+		Hashtable jd = MiniJSON.jsonDecode(_json) as Hashtable;
+		Direction dir = (Direction)int.Parse (jd ["dir"].ToString ());
+		float val = float.Parse (jd ["val"].ToString ());
+		changeDirection (dir);
+		switch (dir) 
+		{
+		case Direction.Left:
+			LeftTwist (val);
+			break;
+		case Direction.Right:
+			RightTwist (val);
+			break;
+		case Direction.Up:
+			UpTwist (val);
+			break;
+		case Direction.Down:
+			DownTwist (val);
+			break;
+		}
+		if( val>0.5f)
+		{
+			isshow = false;
+			showpoker ();
+			return;
+		}
 	}
 }

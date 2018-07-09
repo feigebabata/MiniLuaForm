@@ -5,12 +5,11 @@ using UnityEditor;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using LitJson;
 
 public class QEditorTool
 {
-	static string PlayIP="http://www.baidu.com/";//当前打包模块的服务器ip
 	static string Modules = "hall";//当前打包模块名称
+	static BuildTarget target = BuildTarget.iOS;
 
     [MenuItem("QTool/Data/清除数据")]
     static void ClearData()
@@ -56,15 +55,15 @@ public class QEditorTool
 
         AssetDatabase.Refresh();
 
-        Debug.Log("设置成功");
+		Debug.Log(Modules+"设置成功");
     }
     [MenuItem("QTool/AB/Bundle AB")]
     static void BundleAndroidAB()
     {
         string outPath = QPathHelper.GetAssetBundleOutPath();
 //        Debug.Log("path: " + outPath);
-        BuildPipeline.BuildAssetBundles(outPath, 0, BuildTarget.Android);
-        Debug.Log("打包成功");
+		BuildPipeline.BuildAssetBundles(outPath, 0, target);
+		Debug.Log("打包成功");
         AssetDatabase.Refresh();
     }
     [MenuItem("QTool/AB/Creat AB Config")]
@@ -84,24 +83,24 @@ public class QEditorTool
 
         FileStream fs = new FileStream(file, FileMode.CreateNew);
         StreamWriter sw = new StreamWriter(fs);
-		JsonData jd = new JsonData ();
-		jd ["ip"] = PlayIP;
-		jd ["files"] = new JsonData ();
+		Hashtable jd = new Hashtable ();
+		Hashtable files = new Hashtable ();
         foreach (var info in pathList)
         {
             string md5 = GetFileMd5(info);
 
             string fileName = info.Replace(outPath + "/", string.Empty);
 			fileName = Modules+"/"+fileName;
-
-//            sw.WriteLine(fileName + "|" + md5);
-			jd ["files"][fileName] = md5;
+			files[fileName] = md5;
         }
-		sw.Write (jd.ToJson());
+		files[Modules+"/files.txt"]=System.DateTime.Now.ToString();
+		files["ModulesConfig.txt"] = System.DateTime.Now.ToString();
+		jd ["files"] = files;
+		sw.Write (MiniJSON.jsonEncode(jd));
         sw.Close();
         fs.Close();
 
-        Debug.Log("创建文本标识成功");
+		Debug.Log(Modules+"创建文本标识成功");
         AssetDatabase.Refresh();
     }
     [MenuItem("QTool/AB/Del Ab")]

@@ -14,7 +14,7 @@ public static class PanelTool
 		canves_T = GameObject.Find ("Canvas").transform;
 	}
 
-	public static void Clear(string _modules)
+	public static void Clear(string _modules="")
 	{
 		List<string> keys = new List<string> (panel_GOs.Count);
 		foreach (string key in panel_GOs.Keys) 
@@ -23,7 +23,7 @@ public static class PanelTool
 		}
 		foreach (var key in keys) 
 		{
-			if (_modules==string.Empty) 
+			if (string.IsNullOrEmpty(_modules)) 
 			{
 				GameObject.Destroy (panel_GOs[key]);
 				panel_GOs.Remove (key);
@@ -67,7 +67,7 @@ public static class PanelTool
 			go.transform.SetSiblingIndex(go.transform.parent.childCount-1);
 			go.SetActive (true);
 			go.GetComponent<PanelBase> ().Open ();
-			go.GetComponent<XLuaBehaviour> ().self.Get<Action<LuaTable>> ("open")(_tab);
+			go.GetComponent<XLuaBehaviour> ().main.Get<Action<LuaTable>> ("onopen")(_tab);
 		}
 		else
 		{
@@ -79,7 +79,7 @@ public static class PanelTool
 					go.transform.SetParent(canves_T.GetChild(_layer),false);
 					go.transform.SetSiblingIndex(go.transform.parent.childCount-1);
 					go.GetComponent<PanelBase> ().Open ();
-					go.GetComponent<XLuaBehaviour> ().self.Get<Action<LuaTable>> ("open")(_tab);
+					go.GetComponent<XLuaBehaviour> ().main.Get<Action<LuaTable>> ("onopen")(_tab);
 					panel_GOs[key]=go;
 				});
 		}
@@ -91,9 +91,12 @@ public static class PanelTool
 		if(panel_GOs.ContainsKey(key))
 		{
 			GameObject go = panel_GOs[key];
-			go.GetComponent<PanelBase> ().Close ();
-			LuaTable tab = go.GetComponent<XLuaBehaviour> ().self;
-			tab.Get<Action> ("close")();
+			if (go.activeSelf) 
+			{
+				go.GetComponent<PanelBase> ().Close ();
+				LuaTable tab = go.GetComponent<XLuaBehaviour> ().main;
+				tab.Get<Action> ("onclose")();
+			}
 		}
 		else
 		{

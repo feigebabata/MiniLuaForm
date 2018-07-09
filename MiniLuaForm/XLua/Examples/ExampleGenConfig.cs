@@ -47,8 +47,10 @@ public static class ExampleGenConfig
                 typeof(Mathf),
                 typeof(System.Collections.Generic.List<int>),
 				typeof(Action<string>),
-				typeof(Action<LuaTable>),
-				typeof(Action<Single>),
+		typeof(Action<LuaTable>),
+		typeof(Action<Single>),
+		typeof(Action<Texture2D>),
+		typeof(LuaTable),
                 typeof(UnityEngine.Debug)
             };
 
@@ -61,7 +63,10 @@ public static class ExampleGenConfig
                 typeof(Action<string>),
 				typeof(Action<double>),
 				typeof(Action<Single>),
-				typeof(Action<float>),
+		typeof(Action<float>),
+		typeof(Action<Texture2D>),
+		typeof(Action<Sprite>),
+		typeof(LuaTable),
                 typeof(UnityEngine.Events.UnityAction),
                 typeof(System.Collections.IEnumerator)
             };

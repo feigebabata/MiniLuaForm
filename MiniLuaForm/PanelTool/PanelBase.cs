@@ -12,6 +12,7 @@ public class PanelBase : MonoBehaviour
 	{
 		if(AniTime!=0 && EnterAnis!=null && EnterAnis.Length!=0)
 		{
+			StopAllCoroutines ();
 			StartCoroutine (playOpenAni());
 		}
 		else
@@ -94,6 +95,7 @@ public class PanelBase : MonoBehaviour
 	{
 		if(AniTime!=0 && ExitAnis!=null && ExitAnis.Length!=0)
 		{
+			StopAllCoroutines ();
 			StartCoroutine (playCloseAni());
 		}
 		else

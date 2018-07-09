@@ -21,6 +21,11 @@ public class CorMng : MngBase
 		base.Init ();
 	}
 
+	public void Clear()
+	{
+		StopAllCoroutines ();
+	}
+
 	public void Delay(float _delayTime,LuaTable _tab,Action<LuaTable> _callback)
 	{
 		StartCoroutine (delay(_delayTime,_tab,_callback));
@@ -29,6 +34,7 @@ public class CorMng : MngBase
 	IEnumerator delay(float _delayTime,LuaTable _tab,Action<LuaTable> _callback)
 	{
 		yield return new WaitForSeconds (_delayTime);
+		yield return new WaitForEndOfFrame ();
 		_callback (_tab);
 	}
 }
